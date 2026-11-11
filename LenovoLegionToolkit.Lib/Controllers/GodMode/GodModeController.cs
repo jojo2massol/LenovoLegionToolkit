@@ -322,6 +322,9 @@ public class GodModeController(
                     fanTable = await GetDefaultFanTableAsync().ConfigureAwait(false);
                 }
                 await WMI.LenovoFanMethod.FanSetTableAsync(fanTable.GetBytes()).ConfigureAwait(false);
+
+                if (await LegacyFanTableEC.IsSupportedAsync().ConfigureAwait(false))
+                    await LegacyFanTableEC.SetFanTableAsync(fanTable).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -536,7 +539,8 @@ public class GodModeController(
 
     private async Task<GodModePreset> GetDefaultStateLegacyAsync()
     {
-        var fanTableData = await GetFanTableDataLegacyAsync().ConfigureAwait(false);
+        var fanTableData = await GetFanTableDataLegacyAsync().ConfigureAwait(false)
+                           ?? (await LegacyFanTableEC.IsSupportedAsync().ConfigureAwait(false) ? LegacyFanTableEC.GetFanTableData() : null);
 
         var preset = new GodModePreset
         {
